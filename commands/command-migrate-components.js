@@ -17,7 +17,7 @@ module.exports = {
         if (!dirs || !dirs.length) {
             dirs = [process.cwd()];
         }
-        
+
         return {
             dirs: dirs
         };
@@ -25,7 +25,7 @@ module.exports = {
 
     run: function(args, config, rapido) {
 
-        
+
         function migrateComponent(sourceDir, targetDir) {
             console.log('Migrating "' + sourceDir + '" to "' + targetDir + '"...');
 
@@ -53,7 +53,7 @@ module.exports = {
                         } else if (d === oldShortName + 'Renderer.js') {
                             out.push('renderer.js');
                         } else if (d === 'raptor/renderer/optimizer.json') {
-                            
+
                         } else if (d.endsWith(oldShortName + '/optimizer.json')) {
                             out.push('./optimizer.json');
                         } else {
@@ -121,10 +121,13 @@ module.exports = {
 
         var dirs = args.dirs;
 
-        
+
         var componentNameMappings = {};
-        
+
         function migrateComponents(callback) {
+            console.log('---migrate components---:');
+            console.log('dir:', dirs);
+
             walk(
                 dirs,
                 {
@@ -132,6 +135,10 @@ module.exports = {
 
                         var basename = nodePath.basename(file);
                         var taglibDir = nodePath.dirname(file);
+
+                        console.log('file:', file);
+                        console.log('basename:', basename);
+                        console.log('taglibdir:', taglibDir);
 
                         if (basename === 'raptor-taglib.json') {
                             var taglib = require(file);
@@ -151,7 +158,7 @@ module.exports = {
                                     var relPath = nodePath.relative(taglibDir, sourceDir);
                                     componentNameMappings[relPath] = tagName;
 
-                                    
+
                                     var targetDir = nodePath.join(taglibDir, 'components', tagName);
 
                                     migrateComponent(sourceDir, targetDir);
@@ -160,9 +167,9 @@ module.exports = {
                         }
                     }
                 },
-                callback); 
+                callback);
         }
-        
+
 
         function fixPaths(callback) {
             console.log('componentNameMappings: ', componentNameMappings);
@@ -181,7 +188,7 @@ module.exports = {
 
                             optimizer.dependencies.forEach(function(d) {
                                 if (typeof d !== 'string') {
-                                    
+
                                 }
                             });
                         }

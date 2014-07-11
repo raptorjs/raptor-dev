@@ -2,6 +2,10 @@
     "name": "raptor-dev",
     "description": "Commands for migrating to RaptorJS 3",
     "commands": {
+        "migrate uniapi": {
+            "description": "Migrate from Cube.js API to Unified Node.js API",
+            "file": "commands/command-migrate-uniapi.js"
+        },
         "migrate packages": {
             "description": "Migrate from package.json to optimizer.json",
             "file": "commands/command-migrate-packages.js"
