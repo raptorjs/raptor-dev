@@ -55,8 +55,54 @@ module.exports = {
             return r;
         }
 
+        function hasRaptorPromises(src) {
+            var r = src && src.indexOf("require('raptor/promises')") > -1 ;
+            if(r) {
+                moduleOptions.moduleNames['raptor-promises'] = true;
+            }
+            return r;
+        }
+
+        function hasUserEbay(src) {
+            var r = src && src.indexOf(".getLevel1UserId()") > -1 ;
+            r = r || src && src.indexOf(".getAccountId()") > -1 ;
+            r = r || src && src.indexOf(".getPersistentAccountId()") > -1 ;
+            if(r) {
+                moduleOptions.moduleNames['user-ebay'] = true;
+            }
+            return r;
+        }
+
+        function hasEbayRequestContext(src) {
+            var r = src && src.indexOf("require('ebay-request-context')") > -1 ;
+            if(r) {
+                moduleOptions.moduleNames['ebay-request-context'] = true;
+            }
+            return r;
+        }
+
+        function hasEbayRequestContext(src) {
+            var r = src && src.indexOf("require('ebay-tracking')") > -1 ;
+            if(r) {
+                moduleOptions.moduleNames['ebay-tracking'] = true;
+            }
+            return r;
+        }
+
         function hasCubejsAPI(src) {
             if( hasModuleConfig(src) ) {
+                return true;
+            }
+            if( hasRaptorPromises(src) ) {
+                return true;
+            }
+            if( hasUserEbay(src) ) {
+                return true;
+            }
+            if( hasEbayRequestContext(src) ) {
+                return true;
+            }
+            if( hasEbayRequestContext(src) ) {
                 return true;
             }
 
