@@ -98,9 +98,18 @@ module.exports = {
             return r;
         }
 
+        function hasEbayI18n(src) {
+            var r = src && src.indexOf("require('ebay-i18n')") > -1;
+            if (r) {
+                moduleOptions.moduleNames['ebay-i18n'] = true;
+            }
+            return r;
+        }
+
         function hasCubejsAPI(src) {
             var checkFuncs = [hasModuleConfig, hasRaptorPromises, hasUserEbay, hasEbayRequestContext, hasEbayTracking ];
             checkFuncs.push(hasCommonsEbay);
+            checkFuncs.push(hasEbayI18n);
 
             var checkResults = _.map(checkFuncs, function(check) {
                 var r = check(src);
