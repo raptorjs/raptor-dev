@@ -5,6 +5,7 @@ var nodePath = require('path');
 var jsTransformer = require('../lib/uniapi-transformer');
 var fs = require('fs');
 var walk = require('../lib/walk');
+var _ = require('underscore');
 
 module.exports = {
     usage: 'Usage: $0 $commandName [dir]',
@@ -48,65 +49,70 @@ module.exports = {
         moduleOptions.moduleNames = {};
 
         function hasModuleConfig(src) {
-            var r = src && src.indexOf("require('module-config')") > -1 ;
-            if(r) {
+            var r = src && src.indexOf("require('module-config')") > -1;
+            if (r) {
                 moduleOptions.moduleNames['module-config'] = true;
             }
             return r;
         }
 
         function hasRaptorPromises(src) {
-            var r = src && src.indexOf("require('raptor/promises')") > -1 ;
-            if(r) {
+            var r = src && src.indexOf("require('raptor/promises')") > -1;
+            if (r) {
                 moduleOptions.moduleNames['raptor-promises'] = true;
             }
             return r;
         }
 
         function hasUserEbay(src) {
-            var r = src && src.indexOf(".getLevel1UserId()") > -1 ;
-            r = r || src && src.indexOf(".getAccountId()") > -1 ;
-            r = r || src && src.indexOf(".getPersistentAccountId()") > -1 ;
-            if(r) {
+            var r = src && src.indexOf(".getLevel1UserId()") > -1;
+            r = r || src && src.indexOf(".getAccountId()") > -1;
+            r = r || src && src.indexOf(".getPersistentAccountId()") > -1;
+            if (r) {
                 moduleOptions.moduleNames['user-ebay'] = true;
             }
             return r;
         }
 
         function hasEbayRequestContext(src) {
-            var r = src && src.indexOf("require('ebay-request-context')") > -1 ;
-            if(r) {
+            var r = src && src.indexOf("require('ebay-request-context')") > -1;
+            if (r) {
                 moduleOptions.moduleNames['ebay-request-context'] = true;
             }
             return r;
         }
 
-        function hasEbayRequestContext(src) {
-            var r = src && src.indexOf("require('ebay-tracking')") > -1 ;
-            if(r) {
+        function hasEbayTracking(src) {
+            var r = src && src.indexOf("require('ebay-tracking')") > -1;
+            if (r) {
                 moduleOptions.moduleNames['ebay-tracking'] = true;
             }
             return r;
         }
 
-        function hasCubejsAPI(src) {
-            if( hasModuleConfig(src) ) {
-                return true;
+        function hasCommonsEbay(src) {
+            var r = src && src.indexOf(".getSiteId()") > -1;
+            if (r) {
+                moduleOptions.moduleNames['commons-ebay'] = true;
             }
-            if( hasRaptorPromises(src) ) {
-                return true;
-            }
-            if( hasUserEbay(src) ) {
-                return true;
-            }
-            if( hasEbayRequestContext(src) ) {
-                return true;
-            }
-            if( hasEbayRequestContext(src) ) {
-                return true;
-            }
+            return r;
+        }
 
-            return false;
+        function hasCubejsAPI(src) {
+            var checkFuncs = [hasModuleConfig, hasRaptorPromises, hasUserEbay, hasEbayRequestContext, hasEbayTracking ];
+            checkFuncs.push(hasCommonsEbay);
+
+            var checkResults = _.map(checkFuncs, function(check) {
+                var r = check(src);
+                // console.log(check, r);
+                return r;
+            });
+
+            var r = _.reduce(checkResults, function(memo, value) {
+                return memo || value;
+            }, false);
+
+            return r;
         }
 
         function transformFile(file) {
@@ -115,32 +121,35 @@ module.exports = {
             // console.log(fileArr);
             var migratePath = 'migrate';
             var findSrc = false;
-            for(var i= fileArr.length-1; i>=0; i--) {
-                if(fileArr[i-1] === 'src') {
+            for (var i = fileArr.length - 1; i >= 0; i--) {
+                if (fileArr[i - 1] === 'src') {
                     findSrc = true;
                     break;
                 }
                 migratePath = '../' + migratePath;
             }
-            if( findSrc === true ) {
+            if (findSrc === true) {
                 moduleOptions.migratePath = migratePath;
             }
 
-            var src = fs.readFileSync(file, {encoding: 'utf8'});
-            if(hasCubejsAPI(src)) {
+            var src = fs.readFileSync(file, {
+                encoding: 'utf8'
+            });
+            if (hasCubejsAPI(src)) {
                 console.log('Transforming ' + file + '...');
                 fileCount++;
                 // return;
                 args.from = nodePath.dirname(file);
                 var transformed = jsTransformer.transform(src, args, moduleOptions);
-                fs.writeFileSync(file, transformed, {encoding: 'utf8'});
+                fs.writeFileSync(file, transformed, {
+                    encoding: 'utf8'
+                });
             }
 
         }
 
         walk(
-            files,
-            {
+            files, {
                 file: function(file) {
 
                     if (file.endsWith('.js')) {
@@ -150,11 +159,13 @@ module.exports = {
             },
             function(err) {
                 if (err) {
-                    console.error('Error while migrating JavaScript: ' + (err.stack || err));
+                    console.error('Error while migrating JavaScript: ' + (err.stack ||
+                        err));
                     return;
                 }
 
-                console.log('All '+fileCount+' JavaScript files migrated to Unified Node.js API');
+                console.log('All ' + fileCount +
+                    ' JavaScript files migrated to Unified Node.js API');
             });
     }
 };
