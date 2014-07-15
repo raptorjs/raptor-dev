@@ -2,6 +2,10 @@
     "name": "raptor-dev",
     "description": "Commands for migrating to RaptorJS 3",
     "commands": {
+        "migrate ecbcontent": {
+            "description": "Migrate from ebay 4cb content file to property file",
+            "file": "commands/command-migrate-content.js"
+        },
         "migrate inlinescript": {
             "description": "Migrate from inline javascript from template to separate Widget js file",
             "file": "commands/command-migrate-inlinejavascript.js"

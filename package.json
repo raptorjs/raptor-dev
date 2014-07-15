@@ -27,6 +27,7 @@
     "raptor-promises": "^0.2.1-beta",
     "raptor-util": "^0.2.2-beta",
     "raptor-xml": "^0.2.2-beta",
+    "shelljs": "^0.3.0",
     "underscore": "^1.6.0"
   },
   "bin": {
