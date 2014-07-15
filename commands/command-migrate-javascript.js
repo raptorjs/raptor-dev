@@ -27,7 +27,7 @@ module.exports = {
         if (!files || !files.length) {
             files = [process.cwd()];
         }
-        
+
         var searchPath = files.filter(function(path) {
             var stat = fs.statSync(path);
             return stat.isDirectory();
@@ -46,10 +46,13 @@ module.exports = {
 
         function transformFile(file) {
             var src = fs.readFileSync(file, {encoding: 'utf8'});
-            console.log('Transforming ' + file + '...');
-            args.from = nodePath.dirname(file);
-            var transformed = jsTransformer.transform(src, args);
-            fs.writeFileSync(file, transformed, {encoding: 'utf8'});
+            if(src && src.indexOf('define') !== -1 ) {
+                console.log('Transforming ' + file + '...');
+                args.from = nodePath.dirname(file);
+                var transformed = jsTransformer.transform(src, args);
+                fs.writeFileSync(file, transformed, {encoding: 'utf8'});
+            }
+
         }
 
         walk(
@@ -67,7 +70,7 @@ module.exports = {
                     console.error('Error while migrating JavaScript: ' + (err.stack || err));
                     return;
                 }
-                
+
                 console.log('All JavaScript files migrated to CommonJS');
             });
     }

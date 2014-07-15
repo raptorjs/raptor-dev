@@ -51,20 +51,29 @@ module.exports = {
         files.forEach(function(file) {
             var fs = require('fs');
             var path = require('path');
-            var contentDir = path.resolve(file, './content');
-            var localeDir = path.resolve(file, './locales');
+            var projectDir = file;
+            var projectSrcDir = path.resolve(file, './src');
+            var componentsDir = path.resolve(file, './src/ui/components');
+
             var shell = require('shelljs');
             // console.log('cnt:', contentDir);
-            if (fs.existsSync(contentDir)) {
-                var r = shell.exec('mkdir -p ' + localeDir);
-                // console.log(r);
-                var contentJar = path.resolve(__dirname, '../content-utils.jar');
-                // console.log(contentJar);
-                r = shell.exec('java -jar ' + contentJar + ' -from-ecb ' + contentDir + ' -to-prop ' + localeDir);
-                // console.log(r && r.output);
-                console.log('All 4cb files migrated to property file.');
+            if (fs.existsSync(projectDir) && fs.existsSync(projectSrcDir) ) {
+
+                var r ;
+                console.log('---: Migrate AMD module to CommonsJS module');
+                r = shell.exec('raptor-dev migrate javascript ' + projectSrcDir);
+                console.log('---: Migrate from package.json to optimizer.json');
+                r = shell.exec('raptor-dev migrate packages ' + projectSrcDir);
+                console.log('---: Migrate RTLD files to raptor-taglib.json');
+                r = shell.exec('raptor-dev migrate taglibs ' + projectSrcDir);
+                console.log('---: Migrate Raptor Template files from XML(raptorjs2) to HTML(raptorjs3)');
+                r = shell.exec('raptor-dev migrate templates ' + projectSrcDir);
+                console.log('---: Migrate UI components to the RaptorJS 3 style');
+                r = shell.exec('raptor-dev migrate components ' + componentsDir);
+
+                console.log('All files migrated to Unified Stack files.');
             } else {
-                console.log('Content Dir does not exist');
+                console.log('Project Dir or Project/src Dir does not exist');
             }
         });
 
