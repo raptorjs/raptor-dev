@@ -60,6 +60,8 @@ module.exports = {
             if (fs.existsSync(projectDir) && fs.existsSync(projectSrcDir) ) {
 
                 var r ;
+                console.log('---: Migrate ebay 4cb content file to Property file');
+                r = shell.exec('raptor-dev migrate ecbcontent ' + projectDir);
                 console.log('---: Migrate AMD module to CommonsJS module');
                 r = shell.exec('raptor-dev migrate javascript ' + projectSrcDir);
                 console.log('---: Migrate from package.json to optimizer.json');
