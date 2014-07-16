@@ -16,6 +16,7 @@
     "esprima": "~1.0.4",
     "esrefactor": "^0.1.0",
     "estraverse": "~1.5.0",
+    "html": "0.0.7",
     "htmlparser2": "^3.7.1",
     "mkdirp": "^0.3.5",
     "q": "~0.9.7",

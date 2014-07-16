@@ -6,6 +6,7 @@ var jsTransformer = require('../lib/uniapi/inline-javascript-transformer');
 var fs = require('fs');
 var walk = require('../lib/walk');
 var _ = require('underscore');
+var path = require('path');
 
 module.exports = {
     usage: 'Usage: $0 $commandName [dir]',
@@ -87,13 +88,65 @@ module.exports = {
 
         }
 
+        function transformInlineJs(file) {
+            if (file.endsWith('.js')) {
+                transformFile(file);
+            }
+        }
+
         walk(
             files, {
                 file: function(file) {
+                    if(file.endsWith('.rhtml') ) {
 
-                    if (file.endsWith('.js')) {
-                        transformFile(file);
+                        var src = fs.readFileSync(file, {
+                            encoding: 'utf8'
+                        });
+
+                        // console.log(src);
+
+
+                        var jsArrs = null;
+
+                        // jsArrs = src.match(/<script.+?<\/script>/g);
+                        var re = /<script([\s\S])*?<\/script>/gmi;
+                        jsArrs = src.match(re)
+
+                        var len = 0;
+                        if(jsArrs && jsArrs.length) {
+                            len = jsArrs.length;
+                        }
+                        // len = 0;
+                        for(var i = 0; i < len; i++ ) {
+                            var fileNo = '000' + i;
+                            fileNo = fileNo.slice(-3);
+                            var shortFileName = 'inlineWidget' + fileNo + '.js';
+                            var fileName = path.resolve(path.dirname(file), shortFileName);
+                            var jsSrc = jsArrs[i];
+                            jsSrc = jsSrc.replace(/<script([\s\S])*?>/mi,'');
+                            jsSrc = jsSrc.replace(/<\/script>/i,'');
+                            fs.writeFileSync(fileName, jsSrc, {
+                                encodeing: 'utf8'
+                            });
+
+                            transformInlineJs(fileName);
+
+                            var widgetDiv = '  <div id="inlineWidget'+fileNo+'" w-bind="./'+ shortFileName +'"></div> ';
+                            // console.log(widgetDiv);
+
+                            src = src.replace(/<script([\s\S])*?<\/script>/mi, '  <div id="inlineWidget'+fileNo+'" w-bind="./'+ shortFileName +'"></div> ');
+                        }
+
+                        src = require('html').prettyPrint(src, {indent_size: 4});
+
+                        fs.writeFileSync(file, src, {
+                            encoding: 'utf8'
+                        });
+
+
                     }
+
+
                 }
             },
             function(err) {
