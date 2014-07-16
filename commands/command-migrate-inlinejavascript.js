@@ -94,6 +94,19 @@ module.exports = {
             }
         }
 
+        function addToOptimizer(optimizerFile, depFile) {
+            var obj = {}
+            if(fs.existsSync(optimizerFile)){
+                obj = require(optimizerFile);
+            }
+
+            obj.dependencies = obj.dependencies || [];
+            if(! _.contains(obj.dependencies, depFile) ) {
+                obj.dependencies.push(depFile);
+                fs.writeFileSync(optimizerFile, JSON.stringify(obj, null, 4) );
+            }
+        }
+
         walk(
             files, {
                 file: function(file) {
@@ -104,6 +117,7 @@ module.exports = {
                         });
 
                         // console.log(src);
+                        var curDir = path.dirname(file);
 
 
                         var jsArrs = null;
@@ -135,6 +149,10 @@ module.exports = {
                             // console.log(widgetDiv);
 
                             src = src.replace(/<script([\s\S])*?<\/script>/mi, '  <div id="inlineWidget'+fileNo+'" w-bind="./'+ shortFileName +'"></div> ');
+
+                            var optimizerFile = path.resolve(curDir, './optimizer.json');
+                            addToOptimizer(optimizerFile, 'require: ./' + shortFileName);
+
                         }
 
                         src = require('html').prettyPrint(src, {indent_size: 4});
