@@ -72,6 +72,8 @@ module.exports = {
                 r = shell.exec('raptor-dev migrate templates ' + projectSrcDir);
                 console.log('---: Migrate UI components to the RaptorJS 3 style');
                 r = shell.exec('raptor-dev migrate components ' + componentsDir);
+                console.log('---: Migrate inline javascript to widget');
+                r = shell.exec('raptor-dev migrate inlinescript ' + projectSrcDir);
 
                 console.log('All files migrated to Unified Stack files.');
             } else {
