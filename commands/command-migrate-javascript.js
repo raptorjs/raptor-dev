@@ -46,8 +46,12 @@ module.exports = {
 
         function transformFile(file) {
             var src = fs.readFileSync(file, {encoding: 'utf8'});
-            if(src && src.indexOf('define') !== -1 ) {
+            // if(src && src.indexOf('window.') !== -1) {
+            //     return;
+            // }
+            if(src && src.indexOf('define(') !== -1 ) {
                 console.log('Transforming ' + file + '...');
+                // return;
                 args.from = nodePath.dirname(file);
                 var transformed = jsTransformer.transform(src, args);
                 fs.writeFileSync(file, transformed, {encoding: 'utf8'});

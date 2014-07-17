@@ -111,6 +111,7 @@ module.exports = {
             files, {
                 file: function(file) {
                     if(file.endsWith('.rhtml') ) {
+                        var basename = path.basename(file,'.rhtml');
 
                         var src = fs.readFileSync(file, {
                             encoding: 'utf8'
@@ -123,8 +124,10 @@ module.exports = {
                         var jsArrs = null;
 
                         // jsArrs = src.match(/<script.+?<\/script>/g);
-                        var re = /<script([\s\S])*?<\/script>/gmi;
+                        var re = /<script([\s\S])*?>([\s\S])*?<\/script>/gmi;
                         jsArrs = src.match(re)
+
+                        // console.log(jsArrs);
 
                         var len = 0;
                         if(jsArrs && jsArrs.length) {
@@ -134,7 +137,7 @@ module.exports = {
                         for(var i = 0; i < len; i++ ) {
                             var fileNo = '000' + i;
                             fileNo = fileNo.slice(-3);
-                            var shortFileName = 'inlineWidget' + fileNo + '.js';
+                            var shortFileName = basename + '-inlineWidget' + fileNo + '.js';
                             var fileName = path.resolve(path.dirname(file), shortFileName);
                             var jsSrc = jsArrs[i];
                             jsSrc = jsSrc.replace(/<script([\s\S])*?>/mi,'');
