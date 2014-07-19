@@ -17,7 +17,7 @@ function removeDir(dir) {
             var stat = fs.statSync(file);
             
             if (stat.isDirectory()) {
-                console.log('Removing directory: ' + file);
+                console.log('Removing directory: ' + dir);
                 removeDir(file);
             } else {
                 fs.unlinkSync(file);
@@ -46,15 +46,18 @@ module.exports = {
         if (!dirs || !dirs.length) {
             dirs = [process.cwd()];
         }
-        
+
         var targetDir = args['target-dir'];
+        if (!targetDir) {
+            throw '"target-dir" is required' ;
+        }
 
         var rootDir = args['root-dir'];
 
         if (rootDir) {
             rootDir = nodePath.resolve(process.cwd(), rootDir);
         }
-
+        
         return {
             targetDir: targetDir,
             dirs: dirs,
@@ -63,12 +66,13 @@ module.exports = {
     },
 
     run: function(args, config, rapido) {
+
+        
+        var targetDir = args.targetDir;
         var rootDir = args.rootDir;
 
-        console.log('Migrating components...');
-
-        function migrateComponent(sourceDir, targetDir) {
-            console.log('Migrating "' + sourceDir + '" to "' + targetDir + '"...');
+        function migratePage(sourceDir, targetDir) {
+            console.log('Migrating page from "' + sourceDir + '" to "' + targetDir + '"...');
 
             mkdirp.sync(targetDir);
 
@@ -90,12 +94,6 @@ module.exports = {
                             return 'template.rhtml';
                         } else if (d === oldShortName + '.css') {
                             return 'style.css';
-                        } else if (d === oldShortName + 'Renderer.js') {
-                            return 'renderer.js';
-                        } else if (d === 'raptor/renderer/optimizer.json') {
-                            
-                        } else if (d.endsWith(oldShortName + '/optimizer.json')) {
-                            return './optimizer.json';
                         } else {
                             return d;
                         }
@@ -143,11 +141,7 @@ module.exports = {
                     return;
                 }
 
-                if (filename === 'raptor-tag.json') {
-                    var raptorTag = require(file);
-                    raptorTag.renderer = './renderer';
-                    code = JSON.stringify(raptorTag, null, 4);
-                } else if (filename === oldShortName + '.css') {
+                if (filename === oldShortName + '.css') {
                     targetFile = nodePath.join(targetDir, 'style.css');
                 } else if (filename === oldShortName + 'Widget.js' || filename === 'widget.js') {
                     targetFile = nodePath.join(targetDir, 'widget.js');
@@ -158,35 +152,22 @@ module.exports = {
                     targetFile = nodePath.join(targetDir, 'template.rhtml');
                     code = fs.readFileSync(file, 'utf8');
                     code = code.replace(/w[:-]widget="([^"]+)"/g, 'w-bind="./widget"');
-                    code = code.replace(/<w[:-]init-widgets\/>/g, '');
-                } else if (filename === oldShortName + 'Renderer.js' || filename === 'renderer.js' || filename === oldShortName + '-renderer.js') {
-                    targetFile = nodePath.join(targetDir, 'renderer.js');
+                } else if (filename === 'index.js') {
+                    targetFile = nodePath.join(targetDir, 'index.js');
                     code = fs.readFileSync(file, 'utf8');
 
-                    // console.log('CHECKING: ', file);
-
                     var foundRaptorTemplatesRender = false;
-                    code = code.replace(/require\(\s*['"]raptor-templates['"]\s*\)\s*.render\(['"][^'"]+['"],\s*/g, function() {
-                        foundRaptorTemplatesRender = true;
-                        return 'template.render(';
-                    });
 
-                    code = code.replace(/templating.render\(['"][^'"]+['"],\s*/g, function() {
+                    // raptorContext.renderTemplate
+                    code = code.replace(/(raptorContext\s*.renderTemplate\(['"]([^'"]+)['"],\s*)(((?:.|\s)+?)(?=\s*\}\s*\);)\s*\}\s*\);)/g, function(match, firstPart, templatePath, everythingElse) {
                         foundRaptorTemplatesRender = true;
-                        return 'template.render(';
+                        everythingElse = everythingElse.replace(/\}\s*\)\s*;$/, '}, res);');
+                        return 'template.render(' + everythingElse;
                     });
-
-                    code = code.replace(/var\s+templating\s*=\s*require\(['"]raptor-templates['"]\);\s*/g, '');
 
                     if (foundRaptorTemplatesRender) {
                         code = "var template = require('raptor-templates').load(require.resolve('./template.rhtml'));\n" + code;
                     }
-
-                    // code = code.replace(/ templating/g, ' raptorTemplates');
-                    // code = code.replace(/require\('raptor-templates'\);/g, function(match) {
-                    //     return match + '\n' + 'var templatePath = require.resolve(\'./template.rhtml\');\n';
-                    // });
-                    // code = code.replace(/raptorTemplates.render\([^,]+/g, 'raptorTemplates.render(templatePath');
                 } else if (filename.endsWith('optimizer.json')) {
                     code = transformOptimizer(JSON.parse(fs.readFileSync(file, 'utf8')));
                 }
@@ -208,33 +189,18 @@ module.exports = {
 
         var dirs = args.dirs;
 
-        
-        var componentPathToTagName = {};
-        var componentTagNameToPath = {};
-        var targetToSourceDir = {};
-        var sourceToTargetDir = {};
 
-        var rootTaglibs = [];
+        var pageDirs = [];
         
-        function findComponents(callback) {
+        function findPages(callback) {
             walk(
                 dirs,
                 {
                     file: function(file) {
 
                         var basename = nodePath.basename(file);
-                        
-
-                        if (basename === 'raptor-taglib.json') {
-                            console.log('Found taglib: ', file);
-                            var taglib = require(file);
-                            if (taglib.tags) {
-                                rootTaglibs.push({
-                                    file: file,
-                                    taglib: taglib
-                                });
-                                
-                            }
+                        if (basename === 'index.js' && file.indexOf('pages/') !== -1) {
+                            pageDirs.push(nodePath.dirname(file));
                         }
                     }
                 },
@@ -243,9 +209,14 @@ module.exports = {
 
         function fixRelativePaths(fromDir, toDir, callback) {
             walk(
-                dirs,
+                rootDir,
                 {
                     file: function(file) {
+                        // if (toDir.endsWith('pages/explorer')) {
+
+                        // }
+                        
+                        console.log('Fixing relative paths in file "' + file + '"');
 
                         var basename = nodePath.basename(file);
                         if (basename.endsWith('optimizer.json')) {
@@ -261,118 +232,35 @@ module.exports = {
                 callback);
         }
 
-        function migrateComponents(callback) {
+        function migratePages(callback) {
 
             var migrateTasks = [];
 
-            rootTaglibs.forEach(function(taglibInfo) {
-                var file = taglibInfo.file;
-                var taglibDir = nodePath.dirname(file);
-                var taglib = taglibInfo.taglib;
+            pageDirs.forEach(function(pageDir) {
+                
+                var targetPageDir = nodePath.join(targetDir, nodePath.basename(pageDir));
 
-                var tagNames = Object.keys(taglib.tags);
-                tagNames.forEach(function(tagName) {
-                    var tagFile = taglib.tags[tagName];
-                    var targetComponentsDir = args.targetDir || nodePath.join(taglibDir, 'components');
-                    var targetDir = nodePath.join(targetComponentsDir, tagName);
-
-                    console.log('tag file: ', tagFile);
-                    if (typeof tagFile !== 'string') {
-                        // Move the tag definition into a separate tag file
-                        var tagDef = tagFile;
-                        var rendererFile = tagDef.renderer;
-                        if (rendererFile) {
-                            rendererFile = nodePath.join(nodePath.dirname(file), rendererFile);
-                            tagFile = nodePath.join(nodePath.dirname(rendererFile), 'raptor-tag.json');
-                            fs.writeFileSync(tagFile, JSON.stringify(tagDef, null, 4), 'utf8');
-                            taglib.tags[tagName] = nodePath.relative(targetComponentsDir, nodePath.join(targetDir, 'raptor-tag.json'));
-                            fs.unlinkSync(file);
-                        } else {
-                            return;
-                        }
-                        
-                        
-                    }
-
-
-                    
-                    tagFile = nodePath.resolve(taglibDir, tagFile);
-
-                    
-
-                    if (tagFile.startsWith(targetDir)) {
-                        return;
-                    }
-
-
-                    migrateTasks.push(function(callback) {
-
-                        
-
-                        var sourceDir = nodePath.dirname(tagFile);
-                        var relPath = nodePath.relative(taglibDir, sourceDir);
-                        componentPathToTagName[relPath] = tagName;
-                        componentTagNameToPath[tagName] = relPath;
-                        
-                        
-                        targetToSourceDir[targetDir] = sourceDir;
-                        sourceToTargetDir[sourceDir] = targetDir;
-
-
-
-                        migrateComponent(sourceDir, targetDir);
-
-                        removeDir(sourceDir);
-
-                        fixRelativePaths(sourceDir, targetDir, callback);
-                    });
-                    
+                migrateTasks.push(function(callback) {
+                    migratePage(pageDir, targetPageDir);
+                    removeDir(pageDir);
+                    fixRelativePaths(pageDir, targetPageDir, callback);
                 });
             });
 
             raptorAsync.series(migrateTasks, callback);
         }        
 
-        function fixTaglibs(callback) {
-            rootTaglibs.forEach(function(taglibInfo) {
-                var taglibFile = taglibInfo.file;
-                var taglibDir = nodePath.dirname(taglibFile);
-                var taglib;
-
-                if (!fs.existsSync(taglibFile)) {
-                    taglibDir = nodePath.join(args.targetDir, '../');
-                    taglibFile = nodePath.join(taglibDir, 'raptor-taglib.json');
-                    taglib = taglibInfo.taglib;
-                } else {
-                    taglib = JSON.parse(fs.readFileSync(taglibFile, 'utf8'));    
-                }
-
-                taglib.tags = taglib.tags || {};
-                
-                var tags = taglib.tags;
-                Object.keys(tags).forEach(function(tagName) {
-                    var targetFile = nodePath.join(taglibDir, 'components', tagName, 'raptor-tag.json');
-                    taglib.tags[tagName] = nodePath.relative(taglibDir, targetFile);
-                });
-
-                fs.writeFileSync(taglibFile, JSON.stringify(taglib, null, 4), 'utf8');
-            });
-
-            callback();
-        }
-
         raptorAsync.series([
-                findComponents,
-                migrateComponents,
-                fixTaglibs
+                findPages,
+                migratePages
             ],
             function(err) {
                 if (err) {
-                    console.error('Error while migrating components: ' + (err.stack || err));
+                    console.error('Error while migrating pages: ' + (err.stack || err));
                     return;
                 }
 
-                console.log('All components migrated');
+                console.log('All pages migrated');
             });
     }
 };

@@ -37,6 +37,10 @@ module.exports = {
         'root-dir': {
             description: 'The root directory to resolve "absolute" paths relative to',
             type: 'string'
+        },
+        'project-root-dir': {
+            description: 'The root directory for the project',
+            type: 'string'
         }
     },
 
@@ -54,7 +58,14 @@ module.exports = {
             rootDir = process.cwd();
         }
 
+        var projectRootDir = args['project-root-dir'];
+        
+        if (projectRootDir) {
+            projectRootDir = nodePath.resolve(process.cwd(), projectRootDir);
+        }
+
         args.rootDir = rootDir;
+        args.projectRootDir = projectRootDir;
 
         return args;
     },
@@ -62,6 +73,7 @@ module.exports = {
     run: function(args, config, rapido) {
         var files = args.files;
         var rootDir = args.rootDir;
+        var projectRootDir = args.projectRootDir;
 
         // console.log(JSON.stringify(args, null, ' '));
 
@@ -98,7 +110,7 @@ module.exports = {
 
                     if (isOptimizerManifest) {
                         rapido.log.info('Migrating "' + file + '"...');
-                        var transformedPkg = packageTransformer.transform(pkg, file, rootDir);
+                        var transformedPkg = packageTransformer.transform(pkg, file, rootDir, projectRootDir);
                         
                         var outputName;
 

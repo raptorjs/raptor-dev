@@ -14,6 +14,19 @@ module.exports = {
             description: 'Skip transforming non-raptor module paths in calls to require() to relative paths',
             type: 'boolean',
             default: false
+        },
+        'relative-to-root': {
+            description: 'If false (default), paths will be calculated relative to the containing directory. Otherwise, paths will be relative to the project root',
+            type: 'boolean',
+            default: false
+        },
+        'root-dir': {
+            description: 'Project root directory',
+            type: 'string'
+        },
+        'require-only': {
+            type: 'boolean',
+            default: false  
         }
     },
 
@@ -28,11 +41,22 @@ module.exports = {
             return stat.isDirectory();
         });
 
+        var relativeToRoot = args['relative-to-root'] === true;
+        var rootDir = args['root-dir'];
+
+        if (rootDir) {
+            rootDir = nodePath.resolve(process.cwd(), rootDir);
+        }
+
+        var requireOnly = args['require-only'] === true;
 
         return {
             searchPath: searchPath,
             files: files,
-            skipTransformRequire: args['skip-transform-require']
+            skipTransformRequire: args['skip-transform-require'],
+            rootDir: rootDir,
+            relativeToRoot: relativeToRoot,
+            requireOnly: requireOnly
         };
     },
 
