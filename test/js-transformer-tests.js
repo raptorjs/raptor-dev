@@ -22,7 +22,8 @@ function testTransform(inputPath) {
     var expectedOutput = readFile(fullExpectedPath);
     var transformed = require('../lib/js-transformer').transform(input, {
         from: nodePath.dirname(nodePath.join(__dirname, fullInputPath)),
-        searchPath: [nodePath.join(__dirname, 'transform-project')]
+        searchPath: [nodePath.join(__dirname, 'transform-project')],
+        rootDir: nodePath.join(__dirname, 'transform-project')
     });
 
     writeFile(fullActualPath, transformed);
@@ -92,7 +93,7 @@ describe('raptor-dev/js-transformer' , function() {
         testTransform('define-object');
     });
 
-    it.only('should transform references to modules that use a path relative to the project root', function() {
+    it('should transform references to modules that use a path relative to the project root', function() {
         testTransform('require-path-relative-to-project-root');
     });
 

@@ -150,7 +150,7 @@ describe('raptor-dev/package-transformer' , function() {
         });
     });
 
-    it('should transform a package correctly that use module paths relative to project root', function() {
+    xit('should transform a package correctly that use module paths relative to project root', function() {
 
         var file = nodePath.join(__dirname, 'transform-project/package-transformer/hello/package.json');
         var pkg = require(file);
@@ -168,7 +168,7 @@ describe('raptor-dev/package-transformer' , function() {
         });
     });
 
-    it('should transform a package correctly that use module paths relative to project root', function() {
+    xit('should transform a package correctly that use module paths relative to project root', function() {
 
         
         var pkg = {
