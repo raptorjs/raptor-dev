@@ -27,6 +27,10 @@ module.exports = {
         'require-only': {
             type: 'boolean',
             default: false  
+        },
+        'require-mappings': {
+            description: 'Path to a JSON file that maps a require path from one to another',
+            type: 'string'
         }
     },
 
@@ -50,18 +54,25 @@ module.exports = {
 
         var requireOnly = args['require-only'] === true;
 
+        var requireMappings = args['require-mappings'];
+
         return {
             searchPath: searchPath,
             files: files,
             skipTransformRequire: args['skip-transform-require'],
             rootDir: rootDir,
             relativeToRoot: relativeToRoot,
-            requireOnly: requireOnly
+            requireOnly: requireOnly,
+            requireMappings: requireMappings
         };
     },
 
     run: function(args, config, rapido) {
         var files = args.files;
+        var requireMappings = args.requireMappings;
+        if (requireMappings) {
+            args.requireMappings = require(nodePath.resolve(process.cwd(), requireMappings));
+        }
 
         function transformFile(file) {
             if (/^jquery/.test(nodePath.basename(file))) {
