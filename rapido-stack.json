@@ -54,6 +54,10 @@
             "description": "Migrate UI page to the RaptorJS 3 style",
             "file": "commands/command-migrate-pages.js"
         },
+        "upgrade all": {
+            "description": "Upgrade all RaptorJS modules referenced by other RaptorJS modules",
+            "file": "commands/command-upgrade-all.js"
+        },
         "upgrade modules": {
             "description": "Upgrade modules in current project that are referenced in package.json",
             "file": "commands/command-upgrade-modules.js"
