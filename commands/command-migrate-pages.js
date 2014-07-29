@@ -146,8 +146,12 @@ module.exports = {
                 } else if (filename === oldShortName + 'Widget.js' || filename === 'widget.js') {
                     targetFile = nodePath.join(targetDir, 'widget.js');
                     code = fs.readFileSync(file, 'utf8');
-                    var oldClassNameRegExp = new RegExp(nodePath.basename(sourceDir) + 'Widget', 'g');
-                    code = code.replace(oldClassNameRegExp, 'Widget');
+                    var className = nodePath.basename(sourceDir) + 'Widget';
+                    var ctorRegExp = new RegExp('function\\s+' + className, 'g');
+                    if (ctorRegExp.test(code)) {
+                        var oldClassNameRegExp = new RegExp(nodePath.basename(sourceDir) + 'Widget', 'g');
+                        code = code.replace(oldClassNameRegExp, 'Widget');
+                    }
                 } else if (filename === oldShortName + '.rhtml') {
                     targetFile = nodePath.join(targetDir, 'template.rhtml');
                     code = fs.readFileSync(file, 'utf8');
