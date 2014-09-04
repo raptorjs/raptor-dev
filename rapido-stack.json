@@ -85,6 +85,14 @@
         "migrate template includes": {
             "description": "Migrate template includes to custom tags",
             "file": "commands/command-migrate-template-includes.js"
+        },
+        "upgrade 0.x versions": {
+            "description": "Bump up all major versons for modules that are 0.x",
+            "file": "commands/command-upgrade-0x-versions.js"
+        },
+        "reset all": {
+            "description": "Runs git reset --hard HEAD for all modules (dangerous)",
+            "file": "commands/command-reset-all.js"
         }
     }
 }

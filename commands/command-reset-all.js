@@ -3,7 +3,6 @@ require('raptor-polyfill/string/startsWith');
 var fs = require('fs');
 var nodePath = require('path');
 var raptorPromises = require('raptor-promises');
-var upgrade = require('../lib/upgrade');
 
 module.exports = {
     usage: 'Usage: $0 $commandName [dir]',
@@ -34,6 +33,14 @@ module.exports = {
         var logger = rapido.util.replayLogger();
 
         logger.info('GitHub organization: ' + org);
+
+        function spawnGit(args, options) {
+            options = options || {};
+            options.logger = logger;
+            options.cwd = options.cwd;
+            return rapido.util.spawnGit(args, options);
+        }
+
         return rapido.prompt({
                 properties: {
                     dir: {
@@ -45,36 +52,34 @@ module.exports = {
             })
             .then(function(result) {
 
-                var promiseChain = raptorPromises.resolved();
+                var resetPromise = raptorPromises.resolved();
 
                 var dir = nodePath.resolve(result.dir);
 
                 var moduleDirs = fs.readdirSync(dir);
 
-
-
                 moduleDirs.forEach(function(moduleName) {
-                    if (!moduleName.startsWith('.')) {
-                        var moduleDir = nodePath.join(dir, moduleName);
-                        var pkgPath = nodePath.join(moduleDir, 'package.json');
-                        if (fs.existsSync(pkgPath)) {
-                            promiseChain = promiseChain.then(function() {
-                                return upgrade.upgradePackageLatest(pkgPath);
-                            });
-                        }
-                    }
 
+                if (moduleName.startsWith('raptor-') && moduleName !== 'raptor-samples' && moduleName !== 'raptor-dev') {
+                        var moduleDir = nodePath.join(dir, moduleName);
+                        resetPromise = resetPromise
+                            .then(function() {
+                                //git fetch origin
+                                return spawnGit(['reset', '--hard', 'HEAD'], {cwd: moduleDir});
+                            });
+                    }
                 });
 
-                return raptorPromises.all([promiseChain]).then(function() {
+                return raptorPromises.all([resetPromise]).then(function() {
                     if (!args.logger) {
                         // Only log if we created the logger (it was not provided as input)
                         rapido.log();
                         logger.summarize();
                     }
 
-                    logger.success('success', 'Version update completed');
+                    logger.success('success', 'All modules reset');
                 });
             });
+
     }
 };
