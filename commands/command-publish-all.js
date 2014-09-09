@@ -20,7 +20,7 @@ module.exports = {
         else {
             dir = process.cwd();
         }
-        
+
         return {
             dir: dir
         };
@@ -57,21 +57,28 @@ module.exports = {
 
         console.log('Publishing the following modules:\n- ' + modulesToPublish.join('\n- '));
 
-        var promises = modulesToPublish.map(function(moduleName) {
-            var moduleDir = new File(dir, moduleName);
-            var promise = rapido.runCommand('module', 'publish', {
-                    cwd: moduleDir.getAbsolutePath()
+        var promiseChain = raptorPromises.resolved();
+
+        modulesToPublish.map(function(moduleName) {
+            promiseChain = promiseChain.then(function() {
+                console.log('Publishing "' + moduleName + '"...');
+
+                var moduleDir = new File(dir, moduleName);
+                var promise = rapido.runCommand('module', 'publish', {
+                        cwd: moduleDir.getAbsolutePath()
+                    });
+
+                promise.fail(function(e) {
+                    failed = true;
+                    failedModules[moduleName] = e;
                 });
 
-            promise.fail(function(e) {
-                failed = true;
-                failedModules[moduleName] = e;
+                return promise;
             });
 
-            return promise;
         });
 
-        return raptorPromises.allSettled(promises)
+        promiseChain
             .then(function() {
 
                 if (failed) {
