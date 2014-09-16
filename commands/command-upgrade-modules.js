@@ -1,5 +1,7 @@
 'use strict';
 
+var nodePath = require('path');
+
 module.exports = {
     usage: 'Upgrades all of the raptorjs modules referenced in the package.json of current directory.\nUsage: $0 $commandName',
 
@@ -18,15 +20,6 @@ module.exports = {
     },
 
     run: function(args, config, rapido) {
-        var shouldPrompt = (args['no-prompt'] === false);
-
-        require('../lib/upgrade').upgradePackage(process.cwd(), shouldPrompt, rapido.log, function(err) {
-            if (err) {
-                rapido.log.error('Error upgrading package.json', err);
-                return;
-            }
-
-            rapido.log.success('Done.');
-        });
+        require('../lib/upgrade').upgradePackageLatest(nodePath.join(process.cwd(), 'package.json'));
     }
 };
