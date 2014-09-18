@@ -20,7 +20,7 @@ module.exports = {
         else {
             dir = process.cwd();
         }
-        
+
         return {
             dir: dir
         };
@@ -33,7 +33,7 @@ module.exports = {
 
         var children = dir.listFiles();
 
-        var modulesToPublish = [];
+        var modulesToTest = [];
         var failedModules = {};
         var failed = false;
 
@@ -42,40 +42,46 @@ module.exports = {
             if (childDir.getName() !== 'raptor-samples' && (childDir.getName().startsWith('raptor-') || childDir.getName() === 'rapido')) {
                 var gitDir = new File(childDir, '.git');
                 if (gitDir.exists()) {
-                    modulesToPublish.push(childDir.getName());
+                    modulesToTest.push(childDir.getName());
                 }
             }
         }
 
-        modulesToPublish.sort();
+        modulesToTest.sort();
 
-        console.log('Testing the following modules:\n- ' + modulesToPublish.join('\n- '));
+        console.log('Testing the following modules:\n- ' + modulesToTest.join('\n- '));
 
-        var promises = modulesToPublish.map(function(moduleName) {
-            var moduleDir = new File(dir, moduleName);
-            var promise = rapido.runCommand('module', 'test', {
-                    cwd: moduleDir.getAbsolutePath()
+        var promiseChain = raptorPromises.resolved();
+
+        modulesToTest.forEach(function(moduleName) {
+            promiseChain = promiseChain.then(function() {
+                var moduleDir = new File(dir, moduleName);
+                var promise = rapido.runCommand('module', 'test', {
+                        cwd: moduleDir.getAbsolutePath()
+                    });
+
+                return promise.fail(function(e) {
+                    failed = true;
+                    failedModules[moduleName] = e;
                 });
-
-            promise.fail(function(e) {
-                failed = true;
-                failedModules[moduleName] = e;
             });
-
-            return promise;
         });
 
-        return raptorPromises.all(promises)
+        return promiseChain
             .then(function() {
                 rapido.log();
-                rapido.log.success('All test cases are passing!');
-            })
-            .fail(function() {
-                var message = Object.keys(failedModules).sort().map(function(moduleName) {
-                    return 'Module name: ' + moduleName + '\nReason: ' + failedModules[moduleName];
-                }).join('\n\n');
 
-                throw 'The following modules have failing tests:\n\n' + message;
-            });
+                if (failed) {
+                    var message = Object.keys(failedModules).sort().map(function(moduleName) {
+                        return 'Module name: ' + moduleName + '\nReason: ' + failedModules[moduleName];
+                    }).join('\n\n');
+
+                    console.error('The following modules have failing tests:\n\n' + message);
+                    process.exit(1);
+                } else {
+                    rapido.log.success('All test cases are passing!');
+                }
+            })
+            .done();
     }
 };
