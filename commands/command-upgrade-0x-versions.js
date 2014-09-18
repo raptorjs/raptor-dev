@@ -1,4 +1,4 @@
-`require('raptor-polyfill/string/startsWith');
+require('raptor-polyfill/string/startsWith');
 
 var fs = require('fs');
 var nodePath = require('path');
