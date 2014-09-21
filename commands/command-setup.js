@@ -4,6 +4,7 @@ var path = require('path');
 var git = require('../lib/git');
 var npm = require('../lib/npm');
 var parallel = require('raptor-async/parallel');
+var series = require('raptor-async/series');
 var fs = require('fs');
 var rimraf = require('rimraf');
 
@@ -112,31 +113,51 @@ function runSetup(args, logger) {
 
         logger.info('Cloning or updating raptorjs repositories to ' + dir + '...');
 
-        // STEP 2: Run "git clone" or "git pull -u" for each repo
-        git.updateRepos(repos, args.dir, logger, function(err) {
-            if (err) {
-                logger.error('Error cloning one or more repos.');
-                return;
-            }
-
-            logger.info('All raptorjs repositories cloned or updated successfully.');
-
-            // STEP 3: Remove unneeded isntalled modules (former dependencies)
-            removeUnneeded(repos, args.dir, logger, function() {
-
-                if (args.link !== false) {
-                    // STEP 4: Use "npm link" to link all of the modules for development
-                    npm.linkModules(repos, args.dir, logger, function(err) {
-
+        series([
+            function(callback) {
+                // update git repos
+                if (args['skip-git-update']) {
+                    callback();
+                } else {
+                    git.updateRepos(repos, args.dir, logger, function(err) {
                         if (err) {
-                            logger.error('Error linking modules.', err);
-                            return;
+                            logger.error('Error cloning one or more repos.');
+                        } else {
+                            logger.info('All raptorjs repositories cloned or updated successfully.');
                         }
-
-                        logger.info('All raptorjs modules linked successfully.');
+                        callback(err);
                     });
                 }
-            });
+            },
+
+            function(callback) {
+                // remove unneeded modules from node_modules
+                removeUnneeded(repos, args.dir, logger, callback);
+            },
+
+            function(callback) {
+                // run npm link
+                if (args['skip-link']) {
+                    callback();
+                } else {
+                    // STEP 4: Use "npm link" to link all of the modules for development
+                    npm.linkModules(repos, args.dir, logger, function(err) {
+                        if (err) {
+                            logger.error('Error linking modules.', err);
+                        } else {
+                            logger.info('All raptorjs modules linked successfully.');
+                        }
+
+                        callback(err);
+                    });
+                }
+            }
+        ], function(err) {
+            if (err) {
+                logger.error('Errors during setup.', err);
+            } else {
+                logger.success('Setup completed successfully.');
+            }
         });
     });
 }
@@ -148,10 +169,15 @@ module.exports = {
             'description': 'GitHub organization',
             'default': require('../lib/raptorjs-github-org')
         },
-        'link': {
+        'skip-link': {
             'description': 'Disable/enable npm link of modules',
             type: 'boolean',
-            default: true
+            default: false
+        },
+        'skip-git-update': {
+            'description': 'Skip updating git repos',
+            type: 'boolean',
+            default: false
         }
     },
 
