@@ -43,7 +43,7 @@ module.exports = {
                 continue;
             }
 
-            if (childDir.getName().startsWith('raptor-') || childDir.getName() === 'rapido') {
+            if (childDir.getName().startsWith('raptor-') || childDir.getName() === 'rapido' || childDir.getName().startsWith('optimizer') || childDir.getName().startsWith('marko')) {
                 var gitDir = new File(childDir, '.git');
                 if (gitDir.exists()) {
                     modulesToPublish.push(childDir.getName());
