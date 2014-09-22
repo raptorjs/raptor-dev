@@ -30,6 +30,14 @@
             "description": "Migrate Raptor Template files from XML to HTML",
             "file": "commands/command-migrate-templates.js"
         },
+        "migrate marko": {
+            "description": "Migrate from raptor-templates to marko",
+            "file": "commands/command-migrate-marko.js"
+        },
+        "migrate optimizer": {
+            "description": "Migrate from raptor-optimizer to optimizer",
+            "file": "commands/command-migrate-optimizer.js"
+        },
         "publish all": {
             "description": "Publish all RaptorJS modules",
             "file": "commands/command-publish-all.js"
