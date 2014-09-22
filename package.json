@@ -19,14 +19,14 @@
         "js-beautify": "^1.5.1",
         "mkdirp": "^0.3.5",
         "q": "~0.9.7",
-        "rapido": "^1.1.8-beta",
-        "rapido-module": "^0.2.0-beta",
-        "raptor-async": "^1.0.0-beta",
-        "raptor-files": "^1.0.0-beta",
-        "raptor-polyfill": "^1.0.0-beta",
-        "raptor-promises": "^1.0.0-beta",
-        "raptor-util": "^1.0.0-beta",
-        "raptor-xml": "^1.0.0-beta",
+        "rapido": "^1.1.8",
+        "rapido-module": "^0.2.0",
+        "raptor-async": "^1.0.0",
+        "raptor-files": "^1.0.0",
+        "raptor-polyfill": "^1.0.0",
+        "raptor-promises": "^1.0.0",
+        "raptor-util": "^1.0.0",
+        "raptor-xml": "^1.0.0",
         "request": "^2.41.0",
         "rimraf": "^2.2.8",
         "semver": "^3.0.1"
@@ -43,5 +43,5 @@
         "jshint": "~2.3.0",
         "mocha": "~1.15.1"
     },
-    "version": "0.2.21-beta"
+    "version": "0.2.21"
 }
