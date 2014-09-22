@@ -20,7 +20,7 @@
         "mkdirp": "^0.3.5",
         "q": "~0.9.7",
         "rapido": "^1.1.8",
-        "rapido-module": "^0.2.0",
+        "rapido-module": "^1.0.0",
         "raptor-async": "^1.0.0",
         "raptor-files": "^1.0.0",
         "raptor-polyfill": "^1.0.0",
