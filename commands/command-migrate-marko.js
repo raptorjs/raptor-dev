@@ -61,7 +61,7 @@ module.exports = {
                     } else if (file.endsWith('.js')) {
                         console.log('Processing "' + file + '"...');
                         src = fs.readFileSync(file, 'utf8');
-                        src = src.replace(/\.rhtml/g, '.marko');
+                        src = src.replace(/rhtml/g, 'marko');
                         src = src.replace(/raptorTemplates/g, 'marko');
                         src = src.replace(/raptor\-templates/g, 'marko');
                         src = src.replace(/raptorWidgets/g, 'markoWidgets');
@@ -72,6 +72,11 @@ module.exports = {
                         src = fs.readFileSync(file, 'utf8');
                         src = src.replace(/raptor\-templates/g, 'marko');
                         src = src.replace(/raptor\-widgets/g, 'marko-widgets');
+                        fs.writeFileSync(file, src, 'utf8');
+                    } else if (file.indexOf('ignore') != -1) {
+                        console.log('Processing "' + file + '"...');
+                        src = fs.readFileSync(file, 'utf8');
+                        src = src.replace(/rhtml/g, 'marko');
                         fs.writeFileSync(file, src, 'utf8');
                     }
                 }
