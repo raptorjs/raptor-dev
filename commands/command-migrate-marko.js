@@ -67,12 +67,14 @@ module.exports = {
                         src = src.replace(/raptor\-templates/g, 'marko');
                         src = src.replace(/raptorWidgets/g, 'markoWidgets');
                         src = src.replace(/raptor\-widgets/g, 'marko-widgets');
+                        src = src.replace(/raptor\-taglib\-/g, 'marko-');
                         fs.writeFileSync(file, src, 'utf8');
                     } else if (file.endsWith('package.json') || file.endsWith('optimizer.json')) {
                         console.log('Processing "' + file + '"...');
                         src = fs.readFileSync(file, 'utf8');
                         src = src.replace(/raptor\-templates/g, 'marko');
                         src = src.replace(/raptor\-widgets/g, 'marko-widgets');
+                        src = src.replace(/raptor\-taglib\-/g, 'marko-');
                         fs.writeFileSync(file, src, 'utf8');
                     } else if (file.indexOf('ignore') != -1) {
                         console.log('Processing "' + file + '"...');

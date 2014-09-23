@@ -38,6 +38,10 @@
             "description": "Migrate from raptor-optimizer to optimizer",
             "file": "commands/command-migrate-optimizer.js"
         },
+        "migrate versions": {
+            "description": "Migrate to the latest versions",
+            "file": "commands/command-migrate-versions.js"
+        },
         "publish all": {
             "description": "Publish all RaptorJS modules",
             "file": "commands/command-publish-all.js"
