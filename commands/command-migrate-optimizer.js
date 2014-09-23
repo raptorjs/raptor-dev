@@ -42,6 +42,12 @@ module.exports = {
                         src = fs.readFileSync(file, 'utf8');
                         src = src.replace(/raptor\-optimizer/g, 'optimizer');
                         fs.writeFileSync(file, src, 'utf8');
+                    } else if (file.endsWith('.md')) {
+                        console.log('Processing "' + file + '"...');
+                        src = fs.readFileSync(file, 'utf8');
+                        src = src.replace(/raptor\-optimizer/g, 'optimizer');
+                        src = src.replace(/raptorOptimizer/g, 'optimizer');
+                        fs.writeFileSync(file, src, 'utf8');
                     }
                 }
             },

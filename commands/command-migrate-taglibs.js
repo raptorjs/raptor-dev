@@ -20,7 +20,7 @@ module.exports = {
         if (!files || !files.length) {
             throw 'one or more files is required';
         }
-        
+
         args.files = files;
         return args;
     },
@@ -36,7 +36,7 @@ module.exports = {
                 file: function(file) {
 
                     var taglib;
-                    
+
                     var dirname = nodePath.dirname(file);
                     var outputFile = nodePath.join(dirname, args['taglib-name']);
 
@@ -94,7 +94,7 @@ module.exports = {
 
                                             // delete the origName property before writing tag file
                                             delete tagDef.origName;
-                                            
+
                                             fs.writeFileSync(tagFile, JSON.stringify(tagDef, null, 4), 'utf8');
                                             tags[importedTagName] = nodePath.relative(dirname, tagFile);
                                         });
@@ -115,7 +115,7 @@ module.exports = {
                     } catch(e) {
                         console.error('Unable to migrate "' + rapido.relativePath(file) + '". Error: ' + (e.stack || e));
                     }
-                    
+
                 }
             },
             function(err) {
@@ -127,10 +127,10 @@ module.exports = {
                 foundRtldFiles.forEach(function(file) {
                     //fs.unlinkSync(file);
                 });
-                
+
                 console.log('All taglibs migrated');
             });
-        
-        
+
+
     }
 };

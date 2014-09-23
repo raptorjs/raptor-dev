@@ -40,6 +40,7 @@ module.exports = {
                         src = src.replace(/c\-(if|var|require|for|def||invoke|attrs|include|with|for\-each)/g, '$1');
                         src = src.replace(/data-provider="\$\{([^}]+)\}"/g, 'data-provider="$1"');
                         src = src.replace(/data-provider="\$([^"]+)"/g, 'data-provider="$1"');
+                        src = src.replace(/rhtml/g, 'marko');
                         fs.writeFileSync(file, src, 'utf8');
                         fs.renameSync(file, file.replace(/\.rhtml$/g, '.marko'));
 
@@ -76,6 +77,14 @@ module.exports = {
                     } else if (file.indexOf('ignore') != -1) {
                         console.log('Processing "' + file + '"...');
                         src = fs.readFileSync(file, 'utf8');
+                        src = src.replace(/rhtml/g, 'marko');
+                        fs.writeFileSync(file, src, 'utf8');
+                    } else if (file.endsWith('.md')) {
+                        console.log('Processing "' + file + '"...');
+                        src = fs.readFileSync(file, 'utf8');
+                        src = src.replace(/Raptor Templates/g, 'Marko');
+                        src = src.replace(/raptor templates/g, 'Marko');
+                        src = src.replace(/raptor\-templates/g, 'marko');
                         src = src.replace(/rhtml/g, 'marko');
                         fs.writeFileSync(file, src, 'utf8');
                     }

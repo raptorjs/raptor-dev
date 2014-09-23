@@ -16,7 +16,7 @@ function copyDir(dir, targetDir) {
     } catch(e) {
         // console.log('Unable to create directory "' + targetDir + '". Exception: ', e.stack || e);
     }
-    
+
     var filenames = fs.readdirSync(dir);
     filenames.forEach(function(filename) {
         var file = nodePath.join(dir, filename);
@@ -39,7 +39,7 @@ function removeDir(dir) {
         for (var i = 0; i < children.length; i++) {
             var file = nodePath.join(dir, children[i]);
             var stat = fs.statSync(file);
-            
+
             if (stat.isDirectory()) {
                 removeDir(file);
             } else {
@@ -66,9 +66,9 @@ module.exports = {
         if (!files || !files.length) {
             throw 'one or more files is required';
         }
-        
+
         var rootDir = args['root-dir'];
-        
+
         if (rootDir) {
             rootDir = nodePath.resolve(process.cwd(), rootDir);
         } else {
@@ -82,7 +82,7 @@ module.exports = {
 
     },
 
-    
+
 
     run: function(args, config, rapido) {
         var rootDir = args.rootDir;
@@ -94,9 +94,9 @@ module.exports = {
         console.log('--------------');
 
         var taglibFile = null;
-        
+
         var newTagFiles = {};
-        
+
 
         function fixRelativePaths(fromDir, toDir, callback) {
             walk(
@@ -108,7 +108,7 @@ module.exports = {
                         if (basename.endsWith('optimizer.json')) {
                             var optimizerManifest = JSON.parse(fs.readFileSync(file, 'utf8'));
                             // console.log(module.id, 'fixRelativePaths: ', file, fromDir,);
-                            optimizerManifest = optimizerFixRelativePaths(optimizerManifest, file, fromDir, toDir); 
+                            optimizerManifest = optimizerFixRelativePaths(optimizerManifest, file, fromDir, toDir);
                             fs.writeFileSync(file, JSON.stringify(optimizerManifest, null, 4), 'utf8');
                         } else if (basename.endsWith('.js')) {
                             commonjsFixRelativePaths(file, fromDir, toDir);
@@ -158,7 +158,7 @@ module.exports = {
 
                 var body = match.body;
 
-                
+
                 var ext = nodePath.extname(template);
 
                 console.log(nodePath.basename(template) + '\n' + ext.length + '\n' + nodePath.basename(template).slice(0, ext.length ? 0-ext.length : undefined));
@@ -166,7 +166,7 @@ module.exports = {
                 var tagName = 'app-' + nodePath.basename(template).slice(0, ext.length ? 0-ext.length : undefined);
 
                 delete attributes.template;
-                
+
 
                 console.log('Converting template "' + template + '" to tag "' + tagName);
                 newTagFiles[tagName] = targetFile;
@@ -205,7 +205,7 @@ module.exports = {
         function transformIncludeTargetsToCustomTags(callback) {
             if (!Object.keys(newTagFiles).length) {
                 console.log('No includes found');
-                return;
+                return callback();
             }
 
             var componentsDir = nodePath.join(rootDir, 'components');
@@ -214,7 +214,7 @@ module.exports = {
                 fs.mkdirSync(componentsDir);
                 console.log('Created directory "' + componentsDir + '"') ;
             } catch(e) {}
-            
+
             var taglib;
 
             if (taglibFile) {
@@ -283,8 +283,10 @@ module.exports = {
                         callback();
                     }
                 };
-                
+
             });
+
+
 
             raptorAsync.series(migrateTasks, function(err) {
                 if (err) {
@@ -292,7 +294,7 @@ module.exports = {
                 }
 
                 console.log('Writing updated taglib to file "' + taglibFile + '"...');
-                fs.writeFileSync(taglibFile, JSON.stringify(taglib, null, 4), 'utf8');    
+                fs.writeFileSync(taglibFile, JSON.stringify(taglib, null, 4), 'utf8');
 
                 callback();
             });
@@ -303,6 +305,8 @@ module.exports = {
                 transformIncludeTargetsToCustomTags
             ],
             function(err) {
+
+
                 if (err) {
                     console.error('Error while transforming includes: ' + (err.stack || err));
                     return;
@@ -310,6 +314,6 @@ module.exports = {
 
                 console.log('All template includes migrated to custom tags. New tags: ' + Object.keys(newTagFiles).join(', '));
             });
-        
+
     }
 };
