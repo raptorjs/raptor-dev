@@ -34,10 +34,19 @@ module.exports = {
                     var dir = nodePath.dirname(file);
                     var src;
 
+                    if (file.endsWith('.json')) {
+                        src = fs.readFileSync(file, 'utf8');
+                        src = src.replace(/rhtml/g, 'marko');
+                        src = src.replace(/raptor\-templates/g, 'marko');
+                        src = src.replace(/raptor\-tag/g, 'marko-tag');
+                        fs.writeFileSync(file, src, 'utf8');
+                    }
+
+
                     if (file.endsWith('.rhtml')) {
                         console.log('Processing "' + file + '"...');
                         src = fs.readFileSync(file, 'utf8');
-                        src = src.replace(/c\-(if|var|require|for|def||invoke|attrs|include|with|for\-each)/g, '$1');
+                        src = src.replace(/([\s<]|<\/)c\-(if|var|require|for|def||invoke|attrs|include|with|for\-each)/g, '$1$2');
                         src = src.replace(/data-provider="\$\{([^}]+)\}"/g, 'data-provider="$1"');
                         src = src.replace(/data-provider="\$([^"]+)"/g, 'data-provider="$1"');
                         src = src.replace(/rhtml/g, 'marko');

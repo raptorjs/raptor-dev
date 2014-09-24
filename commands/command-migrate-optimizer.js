@@ -37,10 +37,11 @@ module.exports = {
                         src = src.replace(/raptor\-optimizer/g, 'optimizer');
                         src = src.replace(/raptorOptimizer/g, 'optimizer');
                         fs.writeFileSync(file, src, 'utf8');
-                    } else if (file.endsWith('package.json') || file.endsWith('optimizer.json')) {
+                    } else if (file.endsWith('.json')) {
                         console.log('Processing "' + file + '"...');
                         src = fs.readFileSync(file, 'utf8');
                         src = src.replace(/raptor\-optimizer/g, 'optimizer');
+                        src = src.replace(/optimizer\-rhtml/g, 'optimizer-marko');
                         fs.writeFileSync(file, src, 'utf8');
                     } else if (file.endsWith('.md')) {
                         console.log('Processing "' + file + '"...');
