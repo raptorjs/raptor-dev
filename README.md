@@ -3,7 +3,7 @@ raptor-dev
 
 # Install
 ```
-git clone git@github.com:raptorjs3/raptor-dev.git
+git clone git@github.com:raptorjs/raptor-dev.git
 cd raptor-dev
 npm link
 ```

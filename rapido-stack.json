@@ -7,7 +7,7 @@
             "file": "commands/command-migrate-packages.js"
         },
         "setup": {
-            "description": "Clone all of the raptorjs3 projects and link them together for raptorjs3 development",
+            "description": "Clone all of the raptorjs projects and link them together for raptorjs development",
             "file": "commands/command-setup.js"
         },
         "dependency graph": {

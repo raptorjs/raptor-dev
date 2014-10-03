@@ -182,7 +182,7 @@ module.exports = {
     },
 
     validate: function(args, rapido) {
-        args.org = args.org || 'raptorjs3';
+        args.org = args.org || 'raptorjs';
         args.dir = args._[0];
 
         if (args.dir) {
