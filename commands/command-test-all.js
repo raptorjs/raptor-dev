@@ -39,7 +39,12 @@ module.exports = {
 
         for (var i=0; i<children.length; i++) {
             var childDir = children[i];
-            if (childDir.getName() !== 'raptor-samples' && (childDir.getName().startsWith('raptor-') || childDir.getName() === 'rapido') || childDir.getName().startsWith('optimizer') || childDir.getName().startsWith('marko')) {
+
+            if (childDir.getName() === 'raptor-dev-util' || childDir.getName() === 'raptor-samples') {
+                continue;
+            }
+
+            if ((childDir.getName().startsWith('raptor-') || childDir.getName() === 'rapido') || childDir.getName().startsWith('optimizer') || childDir.getName().startsWith('marko')) {
                 var gitDir = new File(childDir, '.git');
                 if (gitDir.exists()) {
                     modulesToTest.push(childDir.getName());
