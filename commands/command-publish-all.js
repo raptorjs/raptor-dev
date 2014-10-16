@@ -4,8 +4,6 @@ require('raptor-polyfill');
 var github = require('../lib/github');
 var series = require('raptor-async/series');
 
-var nodePath = require('path');
-
 var BLACKLIST = {
     'atom-language-marko': true,
     'branding': true,
@@ -38,17 +36,7 @@ module.exports = {
     },
 
     validate: function(args, rapido) {
-        var dir = args._[0];
-        if (dir) {
-            dir = nodePath.resolve(process.cwd(), dir);
-        }
-        else {
-            dir = process.cwd();
-        }
-
-        return {
-            dir: dir
-        };
+        return args;
     },
 
     run: function(args, config, rapido) {

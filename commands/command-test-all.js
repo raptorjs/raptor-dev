@@ -1,10 +1,33 @@
 'use strict';
 
 require('raptor-polyfill');
-var File = require('raptor-files/File');
-var raptorPromises = require('raptor-promises');
+var github = require('../lib/github');
+var series = require('raptor-async/series');
 
-var nodePath = require('path');
+var BLACKLIST = {
+    'atom-language-marko': true,
+    'branding': true,
+    'raptor-samples': true,
+    'raptor-sample-ui-components': true,
+    'raptorjs.github.com': true,
+    'templating-benchmarks': true,
+    'website': true,
+    'markoify': true
+};
+
+function createPublishJob(repo, rapido, failed) {
+    return function(callback) {
+        rapido.runCommand('module', 'test', {
+            cwd: repo.localDir
+        }).then(function() {
+            callback();
+        }).fail(function(err) {
+            rapido.log.error('Error testing: ' + repo.name, err);
+            failed.push(repo.name + ' failed. Reason: ' + err);
+            callback();
+        });
+    };
+}
 
 module.exports = {
     usage: 'Usage: $0 $commandName [dir]',
@@ -13,80 +36,38 @@ module.exports = {
     },
 
     validate: function(args, rapido) {
-        var dir = args._[0];
-        if (dir) {
-            dir = nodePath.resolve(process.cwd(), dir);
-        }
-        else {
-            dir = process.cwd();
-        }
-
-        return {
-            dir: dir
-        };
+        return args;
     },
 
     run: function(args, config, rapido) {
-        var dir = args.dir;
+        github.fetchLocalRepos(function(err, repos) {
+            var work = [];
+            var failed = [];
 
-        dir = new File(dir);
+            repos.sort(function(r1, r2) {
+                return r1.name.localeCompare(r2.name);
+            });
 
-        var children = dir.listFiles();
-
-        var modulesToTest = [];
-        var failedModules = {};
-        var failed = false;
-
-        for (var i=0; i<children.length; i++) {
-            var childDir = children[i];
-
-            if (childDir.getName() === 'raptor-dev-util' || childDir.getName() === 'raptor-samples') {
-                continue;
-            }
-
-            if ((childDir.getName().startsWith('raptor-') || childDir.getName() === 'rapido') || childDir.getName().startsWith('optimizer') || childDir.getName().startsWith('marko')) {
-                var gitDir = new File(childDir, '.git');
-                if (gitDir.exists()) {
-                    modulesToTest.push(childDir.getName());
+            for (var i = 0; i < repos.length; i++) {
+                var repo = repos[i];
+                var name = repo.name;
+                if (BLACKLIST[name]) {
+                    continue;
                 }
+
+                console.log('Testing: ' + repo.name);
+
+                work.push(createPublishJob(repo, rapido, failed));
             }
-        }
 
-        modulesToTest.sort();
+            series(work, function(err) {
+                if (err || failed.length > 0) {
+                    rapido.log.error('Error testing modules. ' + (err ? err + '. ' : '') + 'Modules with failed tests:\n' + failed.join('\n'));
+                    return;
+                }
 
-        console.log('Testing the following modules:\n- ' + modulesToTest.join('\n- '));
-
-        var promiseChain = raptorPromises.resolved();
-
-        modulesToTest.forEach(function(moduleName) {
-            promiseChain = promiseChain.then(function() {
-                var moduleDir = new File(dir, moduleName);
-                var promise = rapido.runCommand('module', 'test', {
-                        cwd: moduleDir.getAbsolutePath()
-                    });
-
-                return promise.fail(function(e) {
-                    failed = true;
-                    failedModules[moduleName] = e;
-                });
+                rapido.log.success('All tests are passing!');
             });
         });
-
-        return promiseChain
-            .then(function() {
-                rapido.log();
-
-                if (failed) {
-                    var message = Object.keys(failedModules).sort().map(function(moduleName) {
-                        return 'Module name: ' + moduleName + '\nReason: ' + failedModules[moduleName];
-                    }).join('\n\n');
-
-                    console.error('The following modules have failing tests:\n\n' + message);
-                    process.exit(1);
-                } else {
-                    rapido.log.success('All test cases are passing!');
-                }
-            })
-            .done();
     }
 };
