@@ -188,11 +188,7 @@ module.exports = {
         if (args.dir) {
             args.dir = path.resolve(process.cwd(), args.dir);
         } else {
-            if (__dirname.indexOf('node_modules') === -1) {
-                args.dir = path.normalize(path.join(__dirname, '../..'));
-            } else {
-                args.dir = process.cwd();
-            }
+            args.dir = require('../lib/repos-dir');
         }
 
         return args;
