@@ -41,6 +41,10 @@ module.exports = {
 
     run: function(args, config, rapido) {
         github.fetchLocalRepos(function(err, repos) {
+            if (err) {
+                throw err;
+            }
+            
             var work = [];
             var failed = [];
 
