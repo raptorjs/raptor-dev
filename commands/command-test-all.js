@@ -8,7 +8,7 @@ var BLACKLIST = {
     'atom-language-marko': true,
     'branding': true,
     'raptor-samples': true,
-    'raptor-sample-ui-components': true,
+    'marko-sample-components': true,
     'raptorjs.github.com': true,
     'templating-benchmarks': true,
     'website': true,
