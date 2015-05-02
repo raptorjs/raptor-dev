@@ -21,7 +21,7 @@
     "prompt": "^0.2.14",
     "q": "~0.9.7",
     "rapido": "^1.1.8",
-    "rapido-module": "^1.0.0",
+    "rapido-module": "^1.0.3",
     "raptor-async": "^1.0.0",
     "raptor-files": "^1.0.1",
     "raptor-polyfill": "^1.0.0",
